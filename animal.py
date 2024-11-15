@@ -1,5 +1,3 @@
-# animal.py
-
 class Animal:
     def __init__(self, name, species, diet):
         self.name = name
@@ -9,12 +7,12 @@ class Animal:
     def __str__(self):
         return f"{self.species} named {self.name}"
 
-    def feed(self, food_type):
+    def feed(self, food_type, food_name):
         """Check if the food type matches the animal's diet."""
         if self.diet == food_type:
-            return f"✅ {self.name} has been fed correctly with {food_type} food."
+            return f"✅ {self.name} has been fed correctly with {food_name} ({food_type} food)."
         else:
-            return f"❌ {self.name} cannot eat {food_type}. It's a {self.diet}."
+            return f"❌ {self.name} cannot eat {food_name}. It's a {self.diet} and cannot eat {food_type} food."
 
 # Carnivores
 class Lion(Animal):

@@ -1,5 +1,3 @@
-# main.py
-
 from zoo import Zoo
 from cage import Cage
 from animal import Lion, Gazelle, Hyena, Elephant, Tiger, Monkey, Zebra, Bear, Snake
@@ -14,12 +12,10 @@ def display_instructions():
     print(" - Carnivores: Lion, Tiger, Hyena, Snake")
     print(" - Herbivores: Elephant, Zebra, Gazelle")
     print(" - Omnivores: Monkey, Bear")
-    print("\nInstructions:")
-    print("1. Start by adding at least one cage using option '1'.")
-    print("2. Then, you can add animals to any of the cages using option '2'.")
-    print("3. Use the 'List all cages and animals' option (3) to see an overview of your zoo.")
-    print("4. Use 'Feed an Animal' option (4) to feed animals based on their diet.")
-    print("5. When you're done, select 'Exit' by typing '5' to close the application.")
+    print("\nExamples of Inputs:")
+    print(" - To add a Lion, enter 'Lion' as the animal type.")
+    print(" - To name the Lion, enter a name like 'Simba'.")
+    print(" - To feed animals, enter food types such as 'carnivore', 'herbivore', or 'omnivore'.")
     print("============================================================")
 
 def display_menu():
@@ -68,7 +64,7 @@ def main():
                 print("\n⚠️ No cages available. Please add a cage first by choosing '1' from the menu.")
             else:
                 animal_type = input("Enter animal type (e.g., Lion, Tiger, Gazelle): ").strip().capitalize()
-                name = input("Enter the animal's name (e.g., Leo): ").strip().capitalize()
+                name = input("Enter the animal's name (e.g., Simba, Bella): ").strip().capitalize()
 
                 # Create the animal using the helper function
                 animal = create_animal(animal_type, name)
@@ -89,13 +85,7 @@ def main():
 
         elif choice == '3':
             print("\n=== List of Cages and Animals ===")
-            if zoo.count_cages() == 0:
-                print("There are no cages in the zoo yet.")
-            else:
-                for i, cage in enumerate(zoo.cages, 1):
-                    animals = cage.list_animals()
-                    animal_text = ", ".join(animals) if animals else "The cage is empty."
-                    print(f"Cage {i}: {animal_text}")
+            zoo.list_cages()
 
         elif choice == '4':
             if zoo.count_cages() == 0:
@@ -107,8 +97,9 @@ def main():
                         animals = zoo.cages[cage_index].animals
                         if animals:
                             food_type = input("Enter food type (carnivore, herbivore, omnivore): ").strip().lower()
+                            food_name = input("Enter the name of the food (e.g., meat, grass, berries): ").strip()
                             for animal in animals:
-                                print(animal.feed(food_type))
+                                print(animal.feed(food_type, food_name))
                         else:
                             print("The selected cage is empty.")
                     else:
