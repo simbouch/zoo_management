@@ -15,18 +15,46 @@ class ZooApp:
         title_label = tk.Label(root, text="Bienvenue dans le Zoo Virtuel !", font=("Arial", 18, "bold"), fg="blue", bg="#f5f5dc")
         title_label.pack(pady=10)
         
+        # Listbox for existing items
+        self.list_frame = tk.Frame(root, bg="#f5f5dc")
+        self.list_frame.pack(pady=10)
+        
+        tk.Label(self.list_frame, text="État Actuel du Zoo :", font=("Arial", 14), fg="green", bg="#f5f5dc").pack(pady=5)
+        
+        self.listbox = tk.Listbox(self.list_frame, width=60, height=15, font=("Arial", 10))
+        self.listbox.pack(padx=10, pady=5)
+        
+        # Scrollbar for the listbox
+        scrollbar = tk.Scrollbar(self.listbox, orient=tk.VERTICAL, command=self.listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.listbox.config(yscrollcommand=scrollbar.set)
+        
         # Buttons with colors
         btn_style = {"width": 30, "bg": "#87ceeb", "fg": "black", "font": ("Arial", 12)}  # Sky blue background
 
         tk.Button(root, text="Ajouter une Cage", command=self.add_cage, **btn_style).pack(pady=5)
         tk.Button(root, text="Ajouter un Animal", command=self.add_animal_window, **btn_style).pack(pady=5)
-        tk.Button(root, text="Lister les Cages et Animaux", command=self.list_cages, **btn_style).pack(pady=5)
         tk.Button(root, text="Nourrir un Animal", command=self.feed_animal_window, **btn_style).pack(pady=5)
         tk.Button(root, text="Quitter", command=root.quit, bg="#ff4d4d", fg="white", font=("Arial", 12), width=30).pack(pady=10)
+
+    def update_listbox(self):
+        """Update the listbox with the current state of the zoo."""
+        self.listbox.delete(0, tk.END)
+        if not self.zoo.count_cages():
+            self.listbox.insert(tk.END, "Aucune cage n'est disponible.")
+            return
+        for i, cage in enumerate(self.zoo.cages, 1):
+            self.listbox.insert(tk.END, f"Cage {i} :")
+            if cage.animals:
+                for animal in cage.animals:
+                    self.listbox.insert(tk.END, f"  - {animal}")
+            else:
+                self.listbox.insert(tk.END, "  (La cage est vide)")
 
     def add_cage(self):
         self.zoo.add_cage(Cage())
         messagebox.showinfo("Succès", "✅ Une nouvelle cage a été ajoutée au zoo.")
+        self.update_listbox()
 
     def add_animal_window(self):
         if not self.zoo.count_cages():
@@ -37,7 +65,11 @@ class ZooApp:
         add_window.title("Ajouter un Animal")
         add_window.configure(bg="#f0f8ff")  # Alice blue background
 
-        # Animal Type
+        # Available Animal Types
+        animal_types = ["Lion", "Tigre", "Mangouste", "Serpent", "Éléphant", "Zèbre", "Okapi", "Gazelle", "Ours", "Raton Laveur", "Coati", "Chimpanzé"]
+        tk.Label(add_window, text=f"Types d'Animaux Disponibles : {', '.join(animal_types)}", bg="#f0f8ff", fg="black", font=("Arial", 10)).pack(pady=5)
+        
+        # Animal Type Entry
         tk.Label(add_window, text="Type d'Animal (e.g., Lion, Tigre, Gazelle)", bg="#f0f8ff", fg="black", font=("Arial", 10)).pack(pady=5)
         animal_type_entry = tk.Entry(add_window)
         animal_type_entry.pack(pady=5)
@@ -48,7 +80,7 @@ class ZooApp:
         animal_name_entry.pack(pady=5)
         
         # Cage Number
-        tk.Label(add_window, text=f"Numéro de Cage (1 à {self.zoo.count_cages()})", bg="#f0f8ff", fg="black", font=("Arial", 10)).pack(pady=5)
+        tk.Label(add_window, text=f"Numéros de Cages Disponibles : {', '.join([str(i+1) for i in range(self.zoo.count_cages())])}", bg="#f0f8ff", fg="black", font=("Arial", 10)).pack(pady=5)
         cage_number_entry = tk.Entry(add_window)
         cage_number_entry.pack(pady=5)
         
@@ -62,30 +94,17 @@ class ZooApp:
                 
                 animal = create_animal(animal_type, animal_name)
                 if not animal:
-                    messagebox.showerror("Erreur", "❌ Type d'animal invalide.")
+                    messagebox.showerror("Erreur", f"❌ Type d'animal invalide. Choisissez parmi : {', '.join(animal_types)}.")
                     return
                 
                 self.zoo.cages[cage_index].add_animal(animal)
                 messagebox.showinfo("Succès", f"✅ {animal} a été ajouté à la cage {cage_index + 1}.")
                 add_window.destroy()
+                self.update_listbox()
             except ValueError:
                 messagebox.showerror("Erreur", "❌ Numéro de cage invalide.")
 
         tk.Button(add_window, text="Ajouter l'Animal", command=add_animal, bg="#87ceeb", fg="black", font=("Arial", 10)).pack(pady=10)
-
-    def list_cages(self):
-        if not self.zoo.count_cages():
-            messagebox.showinfo("Cages", "Il n'y a aucune cage dans le zoo.")
-            return
-        
-        list_window = tk.Toplevel(self.root)
-        list_window.title("Liste des Cages et Animaux")
-        list_window.configure(bg="#f0fff0")  # Honeydew background
-
-        for i, cage in enumerate(self.zoo.cages, 1):
-            animals = cage.list_animals()
-            animal_list = "\n".join(animals) if animals else "La cage est vide."
-            tk.Label(list_window, text=f"Cage {i} :\n{animal_list}", anchor="w", justify="left", bg="#f0fff0", fg="black").pack(pady=5)
 
     def feed_animal_window(self):
         if not self.zoo.count_cages():
@@ -96,13 +115,14 @@ class ZooApp:
         feed_window.title("Nourrir un Animal")
         feed_window.configure(bg="#ffe4e1")  # Misty rose background
 
-        # Cage Number
-        tk.Label(feed_window, text=f"Numéro de Cage (1 à {self.zoo.count_cages()})", bg="#ffe4e1", fg="black", font=("Arial", 10)).pack(pady=5)
+        # Cage Numbers
+        tk.Label(feed_window, text=f"Numéros de Cages Disponibles : {', '.join([str(i+1) for i in range(self.zoo.count_cages())])}", bg="#ffe4e1", fg="black", font=("Arial", 10)).pack(pady=5)
         cage_number_entry = tk.Entry(feed_window)
         cage_number_entry.pack(pady=5)
         
-        # Food Type
-        tk.Label(feed_window, text="Type de Nourriture (e.g., carnivore, herbivore)", bg="#ffe4e1", fg="black", font=("Arial", 10)).pack(pady=5)
+        # Food Types
+        food_types = ["carnivore", "herbivore", "omnivore"]
+        tk.Label(feed_window, text=f"Types de Nourriture Disponibles : {', '.join(food_types)}", bg="#ffe4e1", fg="black", font=("Arial", 10)).pack(pady=5)
         food_type_entry = tk.Entry(feed_window)
         food_type_entry.pack(pady=5)
         
@@ -123,10 +143,15 @@ class ZooApp:
                     return
                 
                 food_type = food_type_entry.get().lower()
+                if food_type not in food_types:
+                    messagebox.showerror("Erreur", f"❌ Type de nourriture invalide. Choisissez parmi : {', '.join(food_types)}.")
+                    return
+                
                 food_name = food_name_entry.get()
                 results = [animal.feed(food_type, food_name) for animal in animals]
                 messagebox.showinfo("Résultats", "\n".join(results))
                 feed_window.destroy()
+                self.update_listbox()
             except ValueError:
                 messagebox.showerror("Erreur", "❌ Numéro de cage invalide.")
         
