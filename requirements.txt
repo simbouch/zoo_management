@@ -1,2 +1,1 @@
-colorama==0.4.6  # Library for colored text in the console
-# Tkinter is included with Python by default, but ensure Python is installed with Tkinter support
+
